@@ -1,0 +1,304 @@
+//Kenneth de Brabander in Samenwerking met SpeelgoedMuseum Opstelten
+//versie 0.3 : 17-12-2014
+// visualisatie gebruik carnavalsconstructor(interactief platform)
+// hoe is het gesteld met de bezoekersaantallen? dit kunnen we herleiden uit het gebruik van de carnavalsconstructor.
+// in deze visualisatie gaan we dus een kijkje nemen in bij het gebruik van de CarnavalsConstructor.
+//knoppensysteem geleend van : http://ninjapixel.io/StackOverflow/doughnutTransition.html
+
+//var data = [];
+var width = parseInt(d3.select('.chart_container2').style('width'));
+var height = parseInt(d3.select('.chart_container2').style('height'));
+var color = d3.scale.category20();
+console.log(parseInt(d3.select('.chart_container2').style('width')));
+var padding = 5;
+
+var checktoggle = 0;
+	
+var	parseDate = d3.time.format("%d/%m/%Y").parse;
+var	parseTime = d3.time.format("%H:%M:%S").parse;
+
+var formatTime = d3.time.format("%e %b");
+var formatTime2 = d3.time.format("%H:%M");
+
+var format = d3.time.format("%m");
+
+var day = d3.time.format("%w"),
+    month = d3.time.format("%m");
+  
+
+var checkdate = 0;
+console.log(checkdate);
+var y = d3.time.scale().range([0, height]);
+var x = d3.scale.ordinal().rangeRoundBands([0, width]);	
+
+
+var csv = d3.dsv(";");
+
+csv("data/ccon.csv", function(data){
+	console.log(data);
+var testDate2 = format(new Date(2014, 9, 14));
+
+//var testTime = new Time[1300, 1700];
+//var testDate2 = parseDate(testDate);
+
+console.log(testDate2);
+	
+	var max = d3.max(data, function(d) { return + d.size;} );
+	var maxtime = d3.max(data, function(d){return + d.time});
+	var mintime = d3.min(data, function(d){return + d.time});
+	
+	var widthScale = d3.scale.linear()
+		.domain([0,max])
+		.range([0,height]);
+	
+	data.forEach(function(d) {
+		d.date =  parseDate(d.date);		
+		d.time =  parseTime(d.time);		
+	});
+	
+	//voor elke dag maar een "balk"
+	//per dag een i aantal punten
+	//per punt i is de hoogte 
+
+	y.domain(d3.extent(data, function(d) { return d.time; }));
+	x.domain(data.map(function(d) { return d.date; }));
+	
+	var canvas = d3.select(".chart_container2").append("svg")
+		.attr("width", width)
+		.attr("height", height)
+
+	//line
+	canvas.selectAll("rect")
+		.data(data)
+		.enter()
+		.append("rect")
+		.attr("height", height)
+		.attr("width", 1)
+		.attr("y", 15)
+		.attr("x", function(d) { return x(d.date); })	
+		.attr("class","timelineY")
+		.attr("fill", "#C6E5F1");
+	
+		
+
+		
+	//times accessed
+	canvas.selectAll("circle")
+		.data(data)
+		.enter()
+		.append("circle")			
+		.attr("r", function(d){return d.size/20})
+		.attr("z-index","1000")
+		.attr("cy",function(d) { return y(d.time); })
+		.attr("cx",function(d) { return x(d.date); })
+		.attr("class", function(d,i){ return "circle" + i;})
+		.attr("opacity", "0")	
+		
+		.attr("fill", function(d) {
+            if (format(d.date)  == checkdate) 
+			{	
+				
+				return "#3A616E";					
+            } 
+			
+			else 
+			{	
+				
+                return "grey";					
+            }
+		});
+		
+
+		
+	
+
+	canvas.selectAll("text")
+		.data(data)
+		.enter()
+		.append("text")		   
+		.text(function(d) 			{return formatTime(d.date) 	;})
+		.attr("x", function(d) 		{return x(d.date)			;})		   
+		.attr("y", 15 )			
+		.attr("fill", "#3A616E")	
+		.attr("opacity","0")
+		.attr("text-anchor", "middle")		
+		.style("font-size","10px");
+		   
+	canvas.selectAll("text2")
+		.data(data)
+		.enter()
+		.append("text")		   
+		.text(function(d) 			{return formatTime2(d.time) ;})
+		.attr("x", function(d) {
+		   return x(d.date)+15;
+		})
+		.attr("y", function(d){ return y(d.time);} )
+		.attr("z-index","500")
+		.attr("fill", "white")
+		.attr("text-anchor", "middle")
+		.attr("opacity", "0")			
+		.attr("class", function(d,i){ return "label" + i + " labelx";} )
+		.style("font-size","12px");
+
+	
+		function redraw() {
+		
+		canvas.selectAll("circle")
+		.data(data)
+		.enter()
+		.append("circle")			
+		.attr("r", 10)
+		.attr("z-index","1000")
+		.attr("cy",function(d) { return y(d.time); })
+		.attr("cx",function(d) { return x(d.date); })
+		.attr("class", function(d,i){ return "circle" + i;})
+		.attr("opacity", "0.1")	
+		
+		.attr("fill", function(d) {
+            if (format(d.date)  == 11) 
+			{	
+				console.log(format(d.date), testDate2,"True", "red");
+				return "#3A616E";					
+            } 
+			
+			else 
+			{	
+				console.log(format(d.date), testDate2,"smaller", "green");
+                return "grey";					
+            }
+		});
+	}
+
+});
+
+function setMonth(a) {
+    
+	console.log(a)	;// Function returns the product of a and b
+	checkdate = a;
+	console.log(checkdate);
+	
+	// Get the data again
+	csv = d3.dsv(";");
+	csv("data/ccon.csv", function(data){
+	console.log(data);
+    
+	var max = d3.max(data, function(d) { return + d.size;} );
+	var maxtime = d3.max(data, function(d){return + d.time});
+	var mintime = d3.min(data, function(d){return + d.time});
+	
+	var widthScale = d3.scale.linear()
+		.domain([0,max])
+		.range([0,height]);
+	
+	data.forEach(function(d) {
+		d.date =  parseDate(d.date);		
+		d.time =  parseTime(d.time);		
+	});
+
+        // Scale the range of the data again 
+        x.domain(d3.extent(data, function(d) { return d.date; }));
+        y.domain([0, d3.max(data, function(d) { return d.close; })]);
+
+    // Select the section we want to apply our changes to
+    var canvas = d3.select(".chart_container2").transition();
+
+    // Make the changes
+        canvas.selectAll("circle")   
+            .duration(750)
+            .attr("opacity",function(d) {
+            if (format(d.date)  == checkdate) 
+			{	
+				console.log(format(d.date), checkdate,"True", "red");
+				return "0.2";					
+            } 
+			
+			else 
+			{	
+				console.log(format(d.date), checkdate,"smaller", "green");
+                return "0";					
+            }
+			})
+			
+       		.attr("fill", function(d) {
+            if (format(d.date)  == checkdate) 
+			{	
+				console.log(format(d.date), checkdate,"True", "red");
+				return color(d.size);				
+            } 
+			
+			else 
+			{	
+				console.log(format(d.date), checkdate,"smaller", "green");
+                return "grey";					
+            }
+			});
+	
+	
+		canvas.selectAll(".labelx")
+		
+		.attr("opacity",function(d) {
+            if (format(d.date)  == checkdate) 
+			{	
+				console.log(format(d.date), checkdate,"True", "red");
+				return "0.5";					
+            } 
+			
+			else 
+			{	
+				console.log(format(d.date), checkdate,"smaller", "green");
+                return "0";					
+            }
+			})
+			
+       		.attr("fill", function(d) {
+            if (format(d.date)  == checkdate) 
+			{	
+				console.log(format(d.date), checkdate,"True", "red");
+				return "#5B696E";					
+            } 
+			
+			else 
+			{	
+				console.log(format(d.date), checkdate,"smaller", "green");
+                return "grey";					
+            }
+			});
+		canvas.selectAll("text")
+		
+		.attr("opacity",function(d) {
+            if (format(d.date)  == checkdate) 
+			{	
+				console.log(format(d.date), checkdate,"True", "red");
+				return "0.5";					
+            } 
+			
+			else 
+			{	
+				console.log(format(d.date), checkdate,"smaller", "green");
+                return "0";					
+            }
+			})
+			
+       		.attr("fill", function(d) {
+            if (format(d.date)  == checkdate) 
+			{	
+				console.log(format(d.date), checkdate,"True", "red");
+				return "#5B696E";					
+            } 
+			
+			else 
+			{	
+				console.log(format(d.date), checkdate,"smaller", "green");
+                return "grey";					
+            }
+			});
+		
+    });
+	
+	
+	
+}
+
+
+	
+  	
