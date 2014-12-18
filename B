@@ -1,0 +1,189 @@
+var width =700;
+var height=700;
+var color = d3.scale.category20(); 	
+
+var padding = 1;
+var margin = 5;
+var csv = d3.dsv(";");
+var	parseDate = d3.time.format("%d/%m/%Y").parse;
+var formatTime = d3.time.format("%e %b");
+
+
+var key = function(d) {
+	return d.key;
+};
+
+var count = function(d) {
+	return y(d.count);
+};
+
+var x = d3.scale.ordinal().rangeRoundBands([0, width]);	
+x.rangeRoundBands([0, width], 0.05); 
+var y = d3.scale.linear().range([0, width]);
+csv("data/ccondaycount2.csv", function(data){
+	console.log(data);
+	
+	data.forEach(function(d) {
+		d.date =  parseDate(d.date);		
+	});
+	
+	
+	y.domain([0,60]);
+	x.domain(data.map(function(d) { return d.date; }));
+	var canvas = d3.select(".chart_container1").append("svg")
+		.attr("width", width)
+		.attr("height", height)
+		
+		canvas.selectAll(".bar1")
+			.data(data)
+			.enter()
+			.append("rect")
+			.attr("height", (height/data.length-padding))
+			.attr("width", count)
+			.attr("y", function(d,i){ return i*(height/data.length)})
+			.attr("x", 50)	
+			.attr("class", "bar1")
+			.attr("fill", function(d,i){return color(i+15);});
+		
+		canvas.selectAll(".text1")
+		   .data(data)
+		   .enter()
+		   .append("text")		   
+		   //.text(key)
+		   .text(function(d) 			{return formatTime(d.date) ;})
+		   .attr("x", 25)
+		   .attr("y", function(d,i){ return i*(height/data.length)+10} )			
+		   .attr("fill", function(d,i){return color(i+15);})
+		   .attr("class", "text1")
+			.attr("text-anchor", "middle")		  
+		   .style("font-size","10px")
+		   .style("z-index","500");
+		   
+		   canvas.selectAll(".text2")
+		   .data(data)
+		   .enter()
+		   .append("text")		   
+		   .text(function(d) {return (d.count) ;})
+		   .attr("x", 60 )
+		   .attr("y", function(d,i){ return i*(height/data.length)+10} )			
+		    .attr("fill", function(d,i){return color(i+i*i);})
+			.attr("text-anchor", "middle")	
+			.attr("class", "text2")
+		   .style("font-size","10px")
+		   .style("z-index","500");
+			
+	var sortOrder = false;
+var sortBars = function () {
+		sortOrder = !sortOrder;
+		
+		sortItems = function (a, b) {
+			if (sortOrder) {
+				return a.count - b.count;
+			}
+			return b.count - a.count;
+		};
+
+		canvas.selectAll("rect")
+			.sort(sortItems)
+			.transition()
+			.delay(function (d, i) {
+			return i * 50;
+		})
+			.duration(1000)
+			.attr("x", 50)
+			.attr("y", function(d,i){ return i*(height/data.length)});
+		
+		
+		canvas.selectAll('.text2')
+			.sort(sortItems)
+			.transition()
+			.delay(function (d, i) {
+				return i * 50;
+			})
+			.duration(1000)
+			
+			.attr("text-anchor", "middle")
+			.attr("x", 60 )
+		   .attr("y", function(d,i){ return i*(height/data.length)+10} );
+		  
+		 canvas.selectAll(".text1")
+		    .sort(sortItems)
+			.transition()
+			.delay(function (d, i) {
+				return i * 50;
+			})
+			.duration(1000)			
+			.attr("text-anchor", "middle")  
+		   .attr("x", 25)
+		   .attr("y", function(d,i){ return i*(height/data.length)+10} )			
+		   
+		   
+			.attr("text-anchor", "middle")	;	  
+		   
+		
+
+			
+		
+		
+	};
+
+
+function reset() {
+			canvas.selectAll("rect")		
+				.sort(function(a, b){				
+					return a.key - b.key;
+				})
+				.transition()
+				.delay(function (d, i) {
+				return i * 50;
+				})
+				.duration(1000)
+				.attr("x", 50)
+				.attr("y", function(d,i){ return i*(height/data.length)});
+	
+		canvas.selectAll('.text2')
+			.sort(function(a, b){				
+				return a.key- b.key;
+			})
+			.transition()
+			.delay(function (d, i) {
+				return i * 50;
+			})
+			.duration(1000)
+			
+			.attr("text-anchor", "middle")
+			.attr("x", 60 )
+		    .attr("y", function(d,i){ return i*(height/data.length)+10} );
+		   
+		canvas.selectAll(".text1")
+		    .sort(function(a, b){				
+				return a.key - b.key;
+			})
+			.transition()
+			.delay(function (d, i) {
+				return i * 50;
+			})
+			.duration(1000)			
+			.attr("text-anchor", "middle")  
+		   .attr("x", 25)
+		   .attr("y", function(d,i){ return i*(height/data.length)+10} )			
+		   		  
+			.attr("text-anchor", "middle")		  
+		   .style("font-size","10px")
+		   .style("z-index","500");
+	
+		
+	
+	
+	};
+		
+
+	
+d3.select("#sort").on("click", sortBars);
+d3.select("#reset").on("click", reset);
+	
+	
+
+});
+
+
